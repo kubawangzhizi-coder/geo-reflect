@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy-950: #04091a;
+  --color-navy-900: #071228;
+  --color-navy-850: #0a1932;
+  --color-navy-800: #0d2044;
+  --color-navy-700: #14305f;
+  --color-navy-600: #1c4079;
+  --color-ink: #0b1730;
+  --color-mist: #f2f6fc;
+  --color-line: #dce5f3;
+  --color-glow: #38bdf8;
+  --color-gold: #f5b642;
+  --font-sans: "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans SC",
+    system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: var(--color-mist);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "tnum";
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: rgba(56, 189, 248, 0.25);
+  }
+  .katex {
+    font-size: 1.02em;
+  }
+  .katex-display {
+    margin: 0.6em 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.2em 0;
+  }
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .card-light {
+    @apply rounded-2xl border border-slate-200/80 bg-white;
+    box-shadow:
+      0 1px 2px rgba(15, 35, 70, 0.05),
+      0 18px 40px -26px rgba(15, 35, 70, 0.35);
+  }
+  .card-dark {
+    @apply rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600;
+  }
+  .chip-dark {
+    @apply inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/[0.06] px-2.5 py-1 text-xs text-slate-200;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition;
+    box-shadow: 0 12px 30px -12px rgba(14, 165, 233, 0.75);
+  }
+  .btn-primary:hover {
+    @apply bg-sky-400;
+  }
+  .btn-ghost-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10;
+  }
+  .section-eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-sky-600 uppercase;
+  }
+  .section-title {
+    @apply text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl;
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .grid-bg-dark {
+    background-image:
+      linear-gradient(rgba(148, 197, 255, 0.09) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 197, 255, 0.09) 1px, transparent 1px);
+    background-size: 52px 52px;
+  }
+  .text-glow {
+    background: linear-gradient(120deg, #7dd3fc 0%, #e0f2fe 45%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .link-underline {
+    @apply underline decoration-sky-400/50 decoration-2 underline-offset-4 transition hover:decoration-sky-500;
+  }
+  .prose-geo {
+    @apply text-[15px] leading-7 text-slate-700;
+  }
+  .num-badge {
+    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 font-mono text-xs font-bold text-slate-500;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+  }
+}
+
+/* 图形与交互的细微动画 */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.45s ease both;
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2.4s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-pulse-ring {
+    animation: none;
+  }
+}
