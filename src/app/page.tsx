@@ -67,6 +67,7 @@ export default function HomePage() {
       id: m.id,
       name: m.name,
       category: cat?.short ?? "几何",
+      categoryId: m.categories[0],
       categoryEn: CATEGORY_EN[m.categories[0]] ?? "GEOMETRY",
       figure: m.figure,
       difficulty: m.difficulty,
@@ -216,54 +217,6 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* COLLECTION */}
-      <section className="container-x border-t border-[color:var(--color-rule)] py-20">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div data-reveal>
-            <div className="reveal-mask">
-              <h2 className="section-title">全集索引</h2>
-            </div>
-            <p className="mt-3 max-w-[52ch] text-[13px] leading-6 text-[color:var(--color-ink-soft)]">
-              {MODEL_STATS.total} 个模型，按分类归档。每一个名字都可以直接打开完整知识卡片。
-            </p>
-          </div>
-          <span className="lbl text-[color:var(--color-muted)]">{MODEL_STATS.total} TAPES / 6 DRAWERS</span>
-        </div>
-        <div className="mt-10 border-t border-[color:var(--color-rule)]">
-          {CATEGORIES.map((cat) => (
-            <div key={cat.id} className="grid gap-6 border-b border-[color:var(--color-rule-soft)] py-7 lg:grid-cols-[260px_1fr]">
-              <div>
-                <Link href={`/category/${cat.id}`} className="group flex items-baseline gap-3" data-cursor="btn">
-                  <span className="text-[10px] tracking-[0.14em] text-[color:var(--color-muted)]">{cat.no}</span>
-                  <span className="text-[18px] font-semibold text-[color:var(--color-ink)] group-hover:text-[color:var(--color-cobalt)]">
-                    {cat.name}
-                  </span>
-                </Link>
-                <p className="mt-2 text-[11.5px] leading-5 text-[color:var(--color-muted)]">{cat.tagline}</p>
-              </div>
-              <ul className="grid gap-x-8 sm:grid-cols-2 xl:grid-cols-3">
-                {modelsByCategory(cat.id).map((m) => (
-                  <li key={m.id}>
-                    <Link
-                      href={`/models/${m.id}`}
-                      data-cursor="btn"
-                      className="group flex items-baseline justify-between gap-3 border-b border-[color:var(--color-rule-faint)] py-2"
-                    >
-                      <span className="text-[13px] text-[color:var(--color-ink)] group-hover:text-[color:var(--color-cobalt)]">
-                        {m.name}
-                      </span>
-                      <span className="shrink-0 text-[9px] tracking-[0.12em] text-[color:var(--color-muted)]">
-                        {DIFF_LABEL[m.difficulty]}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
         </div>
       </section>
 

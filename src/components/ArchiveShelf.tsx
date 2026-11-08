@@ -11,6 +11,7 @@ export interface ArchiveTape {
   id: string;
   name: string;
   category: string;
+  categoryId: string;
   categoryEn: string;
   figure: string;
   difficulty: number;
@@ -24,6 +25,31 @@ export interface ArchiveTape {
 }
 
 const DIFF_LABEL: Record<number, string> = { 1: "入门", 2: "进阶", 3: "挑战" };
+
+const CATEGORY_HUE: Record<string, number> = {
+  congruence: 226,
+  midpoint: 248,
+  bisector: 158,
+  axis: 38,
+  isosceles: 352,
+  similarity: 192,
+};
+
+/** 每个模型一套书封颜色与轻微形状差异（同一分类内色相、明度、书角都不同） */
+function coverTone(categoryId: string, index: number) {
+  const base = CATEGORY_HUE[categoryId] ?? 222;
+  const hue = (base + ((index % 5) - 2) * 5 + 360) % 360;
+  const sat = 24 + (index % 4) * 6;
+  const light = 23 + (index % 5) * 3.5;
+  const cut = 4 + ((index * 5) % 14);
+  const tilt = ((index % 5) - 2) * 0.28;
+  return {
+    bg: `hsl(${hue} ${sat}% ${light}%)`,
+    border: `hsl(${hue} ${Math.min(38, sat + 6)}% ${Math.max(16, light - 8)}%)`,
+    cut,
+    tilt,
+  };
+}
 
 function smoothstep(t: number) {
   const x = Math.max(0, Math.min(1, t));
@@ -47,6 +73,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
   const [active, setActive] = useState(Math.min(5, n - 1));
   const [dir, setDir] = useState(1);
   const [detail, setDetail] = useState<ArchiveTape | null>(null);
+  const [detailIndex, setDetailIndex] = useState(Math.min(5, n - 1));
   const [sheetMounted, setSheetMounted] = useState(false);
 
   const sRef = useRef(Math.min(5, n - 1));
@@ -293,13 +320,17 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
     [n],
   );
 
-  const openDetail = useCallback((tape: ArchiveTape) => {
-    tRef.current = Math.round(tRef.current);
-    sRef.current = tRef.current;
-    sheetOpenRef.current = true;
-    setDetail(tape);
-    setSheetMounted(true);
-  }, []);
+  const openDetail = useCallback(
+    (tape: ArchiveTape, index: number) => {
+      const base = Math.round(tRef.current);
+      tRef.current = base + rel(index, base);
+      sheetOpenRef.current = true;
+      setDetailIndex(index);
+      setDetail(tape);
+      setSheetMounted(true);
+    },
+    [n],
+  );
 
   const closeDetail = useCallback(() => {
     const sheet = detailRef.current;
@@ -310,7 +341,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
       document.body.style.overflow = "";
     };
     if (!sheet) return finish();
-    const coverEl = coverRefs.current[((Math.round(tRef.current) % n) + n) % n];
+    const coverEl = coverRefs.current[detailIndex];
     const rect = coverEl?.getBoundingClientRect();
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced || !rect) {
@@ -329,14 +360,14 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
       { duration: 850, easing: "cubic-bezier(.76,0,.18,1)", fill: "forwards" },
     );
     anim.onfinish = finish;
-  }, [n]);
+  }, [detailIndex]);
 
   useLayoutEffect(() => {
     if (!sheetMounted) return;
     document.body.style.overflow = "hidden";
     const sheet = detailRef.current;
     if (!sheet) return;
-    const coverEl = coverRefs.current[((Math.round(tRef.current) % n) + n) % n];
+    const coverEl = coverRefs.current[detailIndex];
     const rect = coverEl?.getBoundingClientRect();
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!reduced && rect) {
@@ -354,7 +385,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
     }
     const t = setTimeout(() => sheet.classList.add("is-ready"), 560);
     return () => clearTimeout(t);
-  }, [sheetMounted, n]);
+  }, [sheetMounted, detailIndex]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -364,7 +395,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
       }
       if (e.key === "ArrowLeft") go(-1);
       else if (e.key === "ArrowRight") go(1);
-      else if (e.key === "Enter") openDetail(tapes[((Math.round(tRef.current) % n) + n) % n]);
+      else if (e.key === "Enter") openDetail(tapes[((Math.round(tRef.current) % n) + n) % n], ((Math.round(tRef.current) % n) + n) % n);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -378,6 +409,8 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
     if (isMajor) majorCount += 1;
     return isMajor ? majorCount : -1;
   });
+  const tones = tapes.map((t, i) => coverTone(t.categoryId, i));
+  const sheetTone = detail ? coverTone(detail.categoryId, detailIndex) : null;
 
   return (
     <section className="archive-hero" ref={heroRef} aria-label="几何模型档案书架">
@@ -396,12 +429,13 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
             <em>档案</em>
           </h1>
           <p className="archive-deck">
-            看到条件，想到模型。把每一个几何模型做成抽屉里的档案带：拖动书架，翻到封面，读它的条件、辅助线与证明。
+            看到条件，想到模型。拖动书架，直接点任意一个模型，就能打开它的条件、辅助线与完整证明。
           </p>
         </div>
         <div className="archive-masthead__meta">
           <span>GEOREFLEX · FILM ARCHIVE</span>
-          <span>{n} TAPES / 6 CATEGORIES</span>
+          <span>46 TAPES / 6 CATEGORIES</span>
+          <span>DRAG · CLICK TO OPEN</span>
           <span>GRADE 8 — 9 / 几何档案</span>
         </div>
       </div>
@@ -416,7 +450,13 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
                 tapeRefs.current[v] = el;
               }}
               className="tape"
-              data-cursor={v === ((Math.round(tRef.current) % n) + n) % n ? "open" : "spine"}
+              data-cursor="open"
+              style={{
+                "--cover-bg": tones[v].bg,
+                "--cover-border": tones[v].border,
+                "--cover-cut": `${tones[v].cut}px`,
+                "--page-tilt": `${tones[v].tilt}deg`,
+              } as React.CSSProperties}
               onPointerEnter={() => {
                 hoverRef.current = v;
               }}
@@ -425,8 +465,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
               }}
               onClick={() => {
                 if (dragRef.current.moved > 5) return;
-                if (v === ((Math.round(tRef.current) % n) + n) % n) openDetail(t);
-                else jumpTo(v);
+                openDetail(t, v);
               }}
             >
               <div className="tape__spine" ref={(el) => { spineRefs.current[v] = el; }}>
@@ -457,7 +496,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
           className="play-ring"
           data-cursor="open"
           aria-label={`打开 ${tape.name} 档案`}
-          onClick={() => openDetail(tape)}
+          onClick={() => openDetail(tape, active)}
         />
       </div>
 
@@ -527,7 +566,14 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
       <div ref={probeRef} style={{ height: "var(--H)", width: 0, visibility: "hidden", position: "absolute" }} />
 
       {sheetMounted && detail && (
-        <div ref={detailRef} className="detail-sheet is-open" role="dialog" aria-modal="true" aria-label={`${detail.name} 档案`}>
+        <div
+          ref={detailRef}
+          className="detail-sheet is-open detail-sheet--book"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${detail.name} 档案`}
+          style={sheetTone ? { background: `color-mix(in srgb, ${sheetTone.bg} 10%, var(--color-sheet))` } : undefined}
+        >
           <button type="button" className="btn-outline detail-close" onClick={closeDetail}>
             CLOSE / 关闭
           </button>
@@ -544,7 +590,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
               </div>
               <div className="detail-line--mask" style={{ "--d": "770ms" } as React.CSSProperties}>
                 <div className="detail-meta">
-                  NO.{String(active + 1).padStart(2, "0")} / {DIFF_LABEL[detail.difficulty]} / 权重 {detail.importance}
+                  NO.{String(detailIndex + 1).padStart(2, "0")} / {DIFF_LABEL[detail.difficulty]} / 权重 {detail.importance}
                 </div>
               </div>
               <div style={{ "--d": "845ms" } as React.CSSProperties}>

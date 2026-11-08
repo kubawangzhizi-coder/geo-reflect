@@ -576,9 +576,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 3px;
-    background:
-      linear-gradient(rgba(20, 20, 20, 0.03), rgba(20, 20, 20, 0.03)),
-      var(--color-sheet);
+    background: var(--cover-bg, var(--color-sheet));
+    color: var(--cover-ink, var(--color-paper));
+    border-color: var(--cover-border, rgba(20, 20, 20, 0.55));
   }
   .tape__spine::after,
   .tape__cover::after {
@@ -596,7 +596,7 @@
     font-size: calc(var(--H) * 0.026);
     font-weight: 600;
     letter-spacing: 0.08em;
-    color: var(--color-ink);
+    color: var(--cover-ink, var(--color-paper));
     line-height: 1.1;
     max-height: 62%;
     overflow: hidden;
@@ -606,22 +606,22 @@
     writing-mode: vertical-rl;
     font-size: 7px;
     letter-spacing: 0.14em;
-    color: var(--color-muted);
+    color: rgba(243, 240, 234, 0.62);
     text-transform: uppercase;
   }
   .tape__spine-box {
-    border: 1px solid var(--color-ink);
+    border: 1px solid rgba(243, 240, 234, 0.72);
     padding: 2px 1px;
     font-size: 6.5px;
     letter-spacing: 0.08em;
     writing-mode: vertical-rl;
-    color: var(--color-ink);
+    color: var(--cover-ink, var(--color-paper));
   }
   .tape__spine-art {
-    width: 60%;
+    width: 62%;
     flex: 0 0 auto;
-    border: 1px solid rgba(20, 20, 20, 0.35);
-    background: var(--color-paper);
+    border: 1px solid rgba(243, 240, 234, 0.45);
+    background: var(--color-sheet);
   }
   .tape__cover {
     width: var(--d);
@@ -630,7 +630,32 @@
     display: flex;
     flex-direction: column;
     padding: calc(var(--H) * 0.035);
-    background: var(--color-sheet);
+    background: var(--cover-bg, var(--color-sheet));
+    color: var(--cover-ink, var(--color-paper));
+    border-color: var(--cover-border, rgba(20, 20, 20, 0.55));
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--cover-cut, 8px)) 0,
+      100% var(--cover-cut, 8px),
+      100% 100%,
+      0 100%
+    );
+  }
+  /* book-page edge + corner fold */
+  .tape__cover::before {
+    content: "";
+    position: absolute;
+    top: calc(var(--cover-cut, 8px) + 4px);
+    right: 0;
+    bottom: 4px;
+    width: 5px;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(243, 240, 234, 0.32) 0 1px,
+      rgba(0, 0, 0, 0.24) 1px 2px
+    );
+    opacity: 0.55;
+    pointer-events: none;
   }
   .tape__cover-top {
     display: flex;
@@ -639,7 +664,7 @@
     font-size: 8px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--color-muted);
+    color: rgba(243, 240, 234, 0.66);
     margin-bottom: calc(var(--H) * 0.018);
   }
   .tape__cover-title {
@@ -647,25 +672,38 @@
     line-height: 1.02;
     letter-spacing: -0.02em;
     font-weight: 700;
-    color: var(--color-cobalt);
+    color: var(--cover-ink, var(--color-paper));
   }
   .tape__cover-sub {
     margin-top: 4px;
     font-size: 8.5px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--color-muted);
+    color: rgba(243, 240, 234, 0.64);
   }
   .tape__cover-figure {
     flex: 1;
     min-height: 0;
-    margin-top: calc(var(--H) * 0.03);
+    margin: calc(var(--H) * 0.03) 2px 0;
     border: 1px solid rgba(20, 20, 20, 0.3);
-    background: #f8fbff;
+    background: #f7f2e8;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    position: relative;
+    transform: rotate(var(--page-tilt, 0deg));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  }
+  .tape__cover-figure::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-style: solid;
+    border-width: 0 11px 11px 0;
+    border-color: transparent rgba(214, 204, 186, 0.95) transparent transparent;
+    pointer-events: none;
   }
   .tape__cover-figure svg {
     width: 100%;
@@ -674,11 +712,11 @@
   .tape__cover-badge {
     margin-top: auto;
     align-self: flex-start;
-    border: 1px solid var(--color-ink);
+    border: 1px solid rgba(243, 240, 234, 0.66);
     padding: 2px 6px;
     font-size: 8px;
     letter-spacing: 0.12em;
-    color: var(--color-ink);
+    color: var(--cover-ink, var(--color-paper));
   }
 
   /* play ring */
@@ -926,6 +964,31 @@
   }
   .detail-sheet.is-open {
     display: block;
+  }
+  .detail-sheet--book {
+    box-shadow: inset 18px 0 0 -16px rgba(20, 20, 20, 0.22), inset 0 0 0 1px rgba(20, 20, 20, 0.06);
+  }
+  .detail-sheet--book::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 12px;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(20, 20, 20, 0.16) 0 1px,
+      rgba(243, 240, 234, 0.4) 1px 3px
+    );
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .detail-sheet--book .detail-sheet__inner {
+    background-image: repeating-linear-gradient(
+      0deg,
+      rgba(20, 20, 20, 0.012) 0 1px,
+      transparent 1px 28px
+    );
   }
   .detail-sheet__inner {
     min-height: 100%;
