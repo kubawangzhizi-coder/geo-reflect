@@ -64,7 +64,7 @@ const out = {};
 await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
 await goto(BASE + "/", 2000);
 await hideCursor();
-out.tapes = await evaluate("document.querySelectorAll('.tape').length");
+out.tapes = await evaluate("document.querySelectorAll('.film-frame').length");
 const cap0 = await evaluate("document.querySelector('.cap-title')?.textContent");
 await evaluate("document.querySelector('.archive-arrow--next')?.click()");
 await sleep(1200);
@@ -73,7 +73,7 @@ out.captionChanged = cap0 !== cap1;
 out.caption = `${cap0} -> ${cap1}`;
 await shot("final-home-1440");
 
-await evaluate("document.querySelector('.play-ring')?.click()");
+await evaluate("document.querySelector('.film-loupe')?.click()");
 await sleep(1700);
 out.sheetOpen = await evaluate("!!document.querySelector('.detail-sheet.is-open')");
 out.sheetReady = await evaluate("document.querySelector('.detail-sheet')?.classList.contains('is-ready')");

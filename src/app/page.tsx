@@ -12,7 +12,7 @@ import { recommend } from "@/lib/reflex";
 export const metadata: Metadata = {
   title: "几何模型档案 · GeoReflex 几何反射",
   description:
-    "把每一个初中几何模型做成可翻阅的档案带：拖动书架，打开封面，读条件、辅助线与完整证明。",
+    "把每一个初中几何模型做成胶片接触印相：拖动胶片，点开任意一格，读条件、辅助线与完整证明。",
 };
 
 const CATEGORY_EN: Record<CategoryId, string> = {
@@ -144,7 +144,7 @@ export default function HomePage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div data-reveal>
             <div className="reveal-mask">
-              <h2 className="section-title">六个抽屉</h2>
+              <h2 className="section-title">六卷胶片</h2>
             </div>
           </div>
           <Link href="/models" className="lbl text-[color:var(--color-cobalt)]" data-cursor="btn">

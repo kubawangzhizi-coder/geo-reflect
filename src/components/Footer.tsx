@@ -10,7 +10,7 @@ export default function Footer() {
           GEOREFLEX
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--color-rule-soft)] pt-4 text-[10px] tracking-[0.14em] text-[color:var(--color-muted)]">
-          <span>几何模型与辅助线档案 · {MODEL_STATS.total} TAPES</span>
+          <span>几何模型与辅助线档案 · {MODEL_STATS.total} FRAMES</span>
           <span>看到条件，想到模型</span>
         </div>
       </div>
