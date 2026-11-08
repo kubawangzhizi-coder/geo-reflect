@@ -26,37 +26,49 @@ export interface ArchiveTape {
 
 const DIFF_LABEL: Record<number, string> = { 1: "入门", 2: "进阶", 3: "挑战" };
 
-const CATEGORY_HUE: Record<string, number> = {
-  congruence: 226,
-  midpoint: 248,
-  bisector: 158,
-  axis: 38,
-  isosceles: 352,
-  similarity: 192,
-};
+/**
+ * 46 本模型书，一本一色：酒红、朱红、赭石、芥黄、橄榄、森林绿、翡翠、孔雀蓝、
+ * 钴蓝、靛青、紫罗兰、梅子、洋红、栗棕……相邻两本刻意拉开色相与明度。
+ * 全部压暗到 25–38% 明度，保证纸色文字始终清晰。
+ */
+const COVER_PALETTE: [number, number, number][] = [
+  [352, 46, 34], [218, 44, 36], [44, 44, 32], [142, 34, 30], [330, 44, 36], [182, 40, 30],
+  [26, 36, 28], [264, 34, 32], [78, 30, 28], [12, 52, 38], [198, 46, 33], [292, 36, 34],
+  [52, 38, 30], [154, 34, 29], [232, 38, 30], [340, 46, 34], [248, 34, 30], [96, 30, 28],
+  [30, 42, 30], [306, 38, 34], [166, 34, 28], [24, 40, 29], [274, 32, 29], [108, 32, 27],
+  [206, 42, 30], [16, 44, 31], [320, 42, 35], [132, 30, 26], [40, 38, 27], [226, 36, 28],
+  [284, 34, 30], [150, 32, 27], [196, 44, 32], [64, 32, 26], [344, 44, 33], [210, 40, 29],
+  [46, 36, 25], [118, 32, 26], [256, 32, 28], [322, 40, 32], [174, 36, 27], [8, 46, 30],
+  [238, 34, 27], [72, 30, 25], [188, 40, 28], [300, 34, 27],
+];
 
-/** 每一帧一套颜色与轻微形状差异：接触印相里的彩色片基 */
-function frameTone(categoryId: string, index: number) {
-  const base = CATEGORY_HUE[categoryId] ?? 222;
-  const hue = (base + ((index % 5) - 2) * 6 + 360) % 360;
-  const sat = 30 + (index % 4) * 7;
-  const light = 26 + (index % 5) * 4;
+/** 每个模型一本颜色不同、书角与页面倾斜略有差异的书 */
+function coverTone(index: number) {
+  const [hue, sat, light] = COVER_PALETTE[index % COVER_PALETTE.length];
+  const cut = 4 + ((index * 5) % 14);
+  const tilt = ((index % 5) - 2) * 0.28;
   return {
     bg: `hsl(${hue} ${sat}% ${light}%)`,
-    border: `hsl(${hue} ${Math.min(44, sat + 8)}% ${Math.max(16, light - 9)}%)`,
-    tint: `hsl(${hue} ${Math.min(42, sat + 2)}% 90.5%)`,
-    cut: 5 + ((index * 5) % 12),
-    tilt: ((index % 5) - 2) * 0.3,
+    border: `hsl(${hue} ${Math.min(58, sat + 8)}% ${Math.max(15, light - 9)}%)`,
+    cut,
+    tilt,
   };
+}
+
+function smoothstep(t: number) {
+  const x = Math.max(0, Math.min(1, t));
+  return x * x * (3 - 2 * x);
 }
 
 export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
   const n = tapes.length;
   const heroRef = useRef<HTMLElement>(null);
-  const rigRef = useRef<HTMLDivElement>(null);
+  const shelfRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
-  const frameRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const loupeRef = useRef<HTMLButtonElement>(null);
+  const tapeRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const coverRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const spineRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const ringRef = useRef<HTMLButtonElement>(null);
   const dotRef = useRef<HTMLSpanElement>(null);
   const timelineRef = useRef<HTMLButtonElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
@@ -73,21 +85,34 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
   const lastActive = useRef(Math.min(5, n - 1));
   const dragRef = useRef({ dragging: false, startX: 0, startT: 0, moved: 0 });
   const hoverRef = useRef<number | null>(null);
+  const liftRef = useRef<number[]>(Array(n).fill(0));
   const pointerRef = useRef({ x: 0, y: 0, active: false });
+  const tiltRef = useRef({ x: 0, y: 0 });
   const wheelTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const geoRef = useRef({ fw: 190, fh: 136, step: 270, heroW: 1440 });
+  const geoRef = useRef({ H: 300, ws: 50, d: 156, gap: 10, U: 390, P: 1400, XS: [0] });
 
   /* ---------- measurement ---------- */
   const measure = useCallback(() => {
+    const probe = probeRef.current;
+    if (!probe) return;
+    const H = probe.getBoundingClientRect().height || 300;
+    const ws = (H * 142) / 840;
+    const d = H * 0.6;
+    const gap = H * 0.035;
+    const U = H * (window.innerWidth < 768 ? 1.05 : 1.3);
+    const P = 1400;
+    const XS: number[] = [0];
+    let acc = 0;
+    for (let u = 2; u <= 3 * U; u += 2) {
+      acc += 2 / (1 + Math.pow(u / U, 1.6));
+      XS.push(acc);
+    }
+    geoRef.current = { H, ws, d, gap, U, P, XS };
     const hero = heroRef.current;
-    if (!hero) return;
-    const fw = Math.min(240, Math.max(124, hero.clientWidth * 0.135));
-    const fh = fw * 0.72;
-    const step = fw * 1.5;
-    geoRef.current = { fw, fh, step, heroW: hero.clientWidth };
-    hero.style.setProperty("--FW", `${fw}px`);
-    hero.style.setProperty("--FH", `${fh}px`);
-    hero.style.setProperty("--H", `${fh}px`);
+    if (hero) {
+      hero.style.setProperty("--ws", `${ws}px`);
+      hero.style.setProperty("--d", `${d}px`);
+    }
   }, []);
 
   useEffect(() => {
@@ -101,11 +126,31 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
     };
   }, [measure]);
 
-  /* ---------- helpers ---------- */
+  /* ---------- geometry helpers ---------- */
   const rel = (v: number, s: number) => {
     let r = (((v - s) % n) + n) % n;
     if (r > n / 2) r -= n;
     return r;
+  };
+  const B = (r: number) => {
+    if (Math.abs(r) >= 1) return 0.5 * Math.sign(r || 1);
+    return (r + Math.sin(Math.PI * r) / Math.PI) / 2;
+  };
+  const F = (r: number) => {
+    const { ws, gap, d } = geoRef.current;
+    return r * (ws + gap) + (d - ws + 1.4 * gap) * B(r);
+  };
+  const scl = (u: number) => {
+    const { U } = geoRef.current;
+    return 1 / (1 + Math.pow(Math.abs(u) / U, 1.6));
+  };
+  const xsc = (u: number) => {
+    const { XS } = geoRef.current;
+    const a = Math.abs(u) / 2;
+    const i = Math.floor(a);
+    if (i >= XS.length - 1) return Math.sign(u || 1) * XS[XS.length - 1];
+    const f = a - i;
+    return Math.sign(u || 1) * (XS[i] + (XS[i + 1] - XS[i]) * f);
   };
 
   /* ---------- animation loop ---------- */
@@ -124,53 +169,87 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
         sRef.current += (tRef.current - sRef.current) * (1 - Math.exp(-k * dt));
       }
       const s = sRef.current;
+      const { H, ws, d, U } = geoRef.current;
+
       const act = ((Math.round(s) % n) + n) % n;
       if (act !== lastActive.current) {
-        lastActive.current = act;
-        setDir(Math.sign(tRef.current - sRef.current || 1));
-        setActive(act);
+        const next = act;
+        setDir(Math.sign((tRef.current - sRef.current) || 1));
+        lastActive.current = next;
+        setActive(next);
       }
 
-      const { step } = geoRef.current;
+      const settled = Math.abs(tRef.current - s) < 0.3;
+      const px = pointerRef.current;
+      const cx = window.innerWidth / 2;
+      const cy = (heroRef.current?.getBoundingClientRect().top ?? 0) + window.innerHeight * 0.52;
+      const onCover =
+        px.active &&
+        settled &&
+        Math.abs(px.x - cx) < d * 0.55 &&
+        Math.abs(px.y - cy) < H * 0.55;
+
+      const tiltTX = onCover ? ((px.x - cx) / (d * 0.55)) * 8 : ((px.x - cx) / window.innerWidth) * 4;
+      const tiltTY = onCover ? -((px.y - cy) / (H / 2)) * 5 : 0;
+      tiltRef.current.x += (tiltTX - tiltRef.current.x) * (1 - Math.exp(-7 * dt));
+      tiltRef.current.y += (tiltTY - tiltRef.current.y) * (1 - Math.exp(-7 * dt));
+
       for (let v = 0; v < n; v++) {
-        const el = frameRefs.current[v];
+        const el = tapeRefs.current[v];
         if (!el) continue;
         const r = rel(v, s);
-        if (Math.abs(r) > 7) {
+        const o = smoothstep(Math.max(0, 1 - Math.abs(r)));
+        const u = F(r);
+        if (Math.abs(u) > U * 1.95) {
           el.style.visibility = "hidden";
           continue;
         }
         el.style.visibility = "visible";
-        const near = Math.exp(-(r * r) / 1.4);
-        const sc = (0.9 + 0.58 * near) * (1 / (1 + Math.abs(r) * 0.035));
-        const x = r * step;
-        const y = Math.min(24, Math.abs(r) * 3.2) - (v === act ? 8 : 0);
-        const ry = -Math.sign(r || 1) * Math.min(20, Math.abs(r) * 4.2);
-        const rz = -r * 0.6;
-        el.style.transform = `translate(-50%, -50%) translate3d(${x}px, ${y}px, 0) rotateY(${ry}deg) rotateZ(${rz}deg) scale(${sc})`;
-        el.style.zIndex = String(2000 - Math.round(Math.abs(r) * 10));
-        el.style.setProperty("--shade", String(Math.min(0.6, Math.abs(r) * 0.095)));
+        const sc = scl(u);
+        const k = 1 / sc;
+
+        const targetLift = hoverRef.current === v && Math.abs(r) > 0.5 ? 1 : 0;
+        liftRef.current[v] += (targetLift - liftRef.current[v]) * (reduced ? 1 : 1 - Math.exp(-12 * dt));
+        const lift = liftRef.current[v];
+
+        const z = geoRef.current.P * (1 - k) + o * H * 0.1;
+        const x = xsc(u) * k;
+        const y = (H * 0.5 * (1 - sc) * 0.42 + o * H * 0.012 - lift * H * 0.05) * k;
+        const ry =
+          Math.sign(u || 1) * Math.min(1, Math.abs(u) / U) * 26 * (1 - o) -
+          90 * o +
+          (v === act ? tiltRef.current.x * o : 0);
+        const rx = v === act ? tiltRef.current.y * o : 0;
+
+        el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+        el.style.zIndex = String(Math.round(3000 + z));
+
+        const spine = spineRefs.current[v];
+        const cover = coverRefs.current[v];
+        if (spine) spine.style.setProperty("--shade", String(Math.min(0.6, o * 0.55 + (1 - sc) * 0.32)));
+        if (cover) cover.style.setProperty("--shade", String((1 - o) * 0.82));
       }
 
-      /* loupe on the active frame */
-      const loupe = loupeRef.current;
-      if (loupe) {
-        const show = Math.max(0, 1 - Math.abs(tRef.current - s) * 3) * (sheetOpenRef.current ? 0 : 1);
-        const fr = frameRefs.current[act];
-        const rig = rigRef.current;
-        if (fr && rig) {
-          const cr = fr.getBoundingClientRect();
-          const rr = rig.getBoundingClientRect();
-          loupe.style.left = `${cr.right - rr.left + 12}px`;
-          loupe.style.top = `${cr.bottom - rr.top + 12}px`;
+      /* play ring */
+      const ring = ringRef.current;
+      if (ring) {
+        const show = smoothstep(Math.max(0, 1 - Math.abs(tRef.current - s) * 3)) * (sheetOpenRef.current ? 0 : 1);
+        const hero = heroRef.current;
+        const shelf = shelfRef.current;
+        const cov = coverRefs.current[act];
+        if (hero && cov && shelf) {
+          const cr = cov.getBoundingClientRect();
+          const sr = shelf.getBoundingClientRect();
+          ring.style.left = `${cr.left - sr.left + cr.width * 0.18}px`;
+          ring.style.top = `${cr.top - sr.top + cr.height * 0.76}px`;
         }
-        loupe.style.opacity = show > 0.05 ? "1" : "0";
-        loupe.style.pointerEvents = show > 0.6 ? "auto" : "none";
-        loupe.style.transform = `scale(${Math.min(1, show)})`;
+        ring.style.transform = `translate(-50%, -50%) scale(${show})`;
+        ring.style.opacity = show > 0.02 ? "1" : "0";
+        ring.style.pointerEvents = show > 0.6 ? "auto" : "none";
       }
-
+      /* timeline dot */
       if (dotRef.current) {
-        const frac = (((s % n) + n) % n) / (n - 1 || 1);
+        const frac = ((s % n) + n) % n / (n - 1 || 1);
         dotRef.current.style.left = `${frac * 100}%`;
       }
       raf = requestAnimationFrame(loop);
@@ -181,13 +260,13 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
 
   /* ---------- wheel + drag ---------- */
   useEffect(() => {
-    const rig = rigRef.current;
-    if (!rig) return;
+    const shelf = shelfRef.current;
+    if (!shelf) return;
     const onWheel = (e: WheelEvent) => {
       if (sheetOpenRef.current) return;
       e.preventDefault();
       const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      tRef.current += (delta / geoRef.current.step) * 0.5;
+      tRef.current += (delta / (geoRef.current.ws + geoRef.current.gap)) * 0.5;
       if (wheelTimer.current) clearTimeout(wheelTimer.current);
       wheelTimer.current = setTimeout(() => {
         tRef.current = Math.round(tRef.current);
@@ -196,7 +275,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
     const onDown = (e: PointerEvent) => {
       if (sheetOpenRef.current) return;
       dragRef.current = { dragging: true, startX: e.clientX, startT: tRef.current, moved: 0 };
-      rig.setPointerCapture?.(e.pointerId);
+      shelf.setPointerCapture?.(e.pointerId);
     };
     const onMove = (e: PointerEvent) => {
       pointerRef.current = { x: e.clientX, y: e.clientY, active: true };
@@ -204,7 +283,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
       if (!dref.dragging) return;
       const dx = e.clientX - dref.startX;
       dref.moved = Math.max(dref.moved, Math.abs(dx));
-      tRef.current = dref.startT - dx / geoRef.current.step;
+      tRef.current = dref.startT - dx / (geoRef.current.ws + geoRef.current.gap);
     };
     const onUp = () => {
       const dref = dragRef.current;
@@ -215,27 +294,35 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
     const onLeave = () => {
       pointerRef.current.active = false;
     };
-    rig.addEventListener("wheel", onWheel, { passive: false });
-    rig.addEventListener("pointerdown", onDown);
+    shelf.addEventListener("wheel", onWheel, { passive: false });
+    shelf.addEventListener("pointerdown", onDown);
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
     window.addEventListener("pointercancel", onUp);
-    rig.addEventListener("pointerleave", onLeave);
+    shelf.addEventListener("pointerleave", onLeave);
     return () => {
-      rig.removeEventListener("wheel", onWheel);
-      rig.removeEventListener("pointerdown", onDown);
+      shelf.removeEventListener("wheel", onWheel);
+      shelf.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
-      rig.removeEventListener("pointerleave", onLeave);
+      shelf.removeEventListener("pointerleave", onLeave);
       if (wheelTimer.current) clearTimeout(wheelTimer.current);
     };
   }, []);
 
-  /* ---------- actions ---------- */
+  /* ---------- keyboard ---------- */
   const go = useCallback((step: number) => {
     tRef.current = Math.round(tRef.current) + step;
   }, []);
+  const jumpTo = useCallback(
+    (index: number) => {
+      const base = Math.round(tRef.current);
+      const target = base + rel(index, base);
+      tRef.current = target;
+    },
+    [n],
+  );
 
   const openDetail = useCallback(
     (tape: ArchiveTape, index: number) => {
@@ -258,8 +345,8 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
       document.body.style.overflow = "";
     };
     if (!sheet) return finish();
-    const frameEl = frameRefs.current[detailIndex];
-    const rect = frameEl?.getBoundingClientRect();
+    const coverEl = coverRefs.current[detailIndex];
+    const rect = coverEl?.getBoundingClientRect();
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced || !rect) {
       finish();
@@ -271,7 +358,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
         {
           clipPath: `inset(${rect.top}px ${window.innerWidth - rect.right}px ${
             window.innerHeight - rect.bottom
-          }px ${rect.left}px round 2px)`,
+          }px ${rect.left}px round 3px)`,
         },
       ],
       { duration: 850, easing: "cubic-bezier(.76,0,.18,1)", fill: "forwards" },
@@ -284,8 +371,8 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
     document.body.style.overflow = "hidden";
     const sheet = detailRef.current;
     if (!sheet) return;
-    const frameEl = frameRefs.current[detailIndex];
-    const rect = frameEl?.getBoundingClientRect();
+    const coverEl = coverRefs.current[detailIndex];
+    const rect = coverEl?.getBoundingClientRect();
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!reduced && rect) {
       sheet.animate(
@@ -293,14 +380,14 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
           {
             clipPath: `inset(${rect.top}px ${window.innerWidth - rect.right}px ${
               window.innerHeight - rect.bottom
-            }px ${rect.left}px round 2px)`,
+            }px ${rect.left}px round 3px)`,
           },
           { clipPath: "inset(0px 0px 0px 0px round 0px)" },
         ],
-        { duration: 1000, easing: "cubic-bezier(.76,0,.18,1)", fill: "forwards" },
+        { duration: 1050, easing: "cubic-bezier(.76,0,.18,1)", fill: "forwards" },
       );
     }
-    const t = setTimeout(() => sheet.classList.add("is-ready"), 540);
+    const t = setTimeout(() => sheet.classList.add("is-ready"), 560);
     return () => clearTimeout(t);
   }, [sheetMounted, detailIndex]);
 
@@ -312,28 +399,25 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
       }
       if (e.key === "ArrowLeft") go(-1);
       else if (e.key === "ArrowRight") go(1);
-      else if (e.key === "Enter") {
-        const idx = ((Math.round(tRef.current) % n) + n) % n;
-        openDetail(tapes[idx], idx);
-      }
+      else if (e.key === "Enter") openDetail(tapes[((Math.round(tRef.current) % n) + n) % n], ((Math.round(tRef.current) % n) + n) % n);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [sheetMounted, closeDetail, go, openDetail, tapes, n]);
 
   const tape = tapes[active] ?? tapes[0];
-  const metaLine = `FRAME ${String(active + 1).padStart(2, "0")} / ${String(n).padStart(2, "0")} — ${DIFF_LABEL[tape.difficulty]} · 权重 ${tape.importance}/5`;
+  const yearLine = `NO.${String(active + 1).padStart(2, "0")} — ${DIFF_LABEL[tape.difficulty]} · 权重 ${tape.importance}/5`;
   let majorCount = -1;
   const majorFlags = tapes.map((t, i) => {
     const isMajor = i === 0 || t.categoryEn !== tapes[i - 1].categoryEn;
     if (isMajor) majorCount += 1;
     return isMajor ? majorCount : -1;
   });
-  const tones = tapes.map((t, i) => frameTone(t.categoryId, i));
-  const sheetTone = detail ? frameTone(detail.categoryId, detailIndex) : null;
+  const tones = tapes.map((t, i) => coverTone(i));
+  const sheetTone = detail ? coverTone(detailIndex) : null;
 
   return (
-    <section className="archive-hero contact-hero" ref={heroRef} aria-label="几何模型胶片接触印相">
+    <section className="archive-hero" ref={heroRef} aria-label="几何模型档案书架">
       <div className="archive-kanji archive-kanji--left" aria-hidden>
         几何
       </div>
@@ -341,54 +425,40 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
         模型
       </div>
 
-      <div className="contact-grid" aria-hidden />
-      <span className="contact-reg contact-reg--tl" aria-hidden />
-      <span className="contact-reg contact-reg--tr" aria-hidden />
-      <span className="contact-reg contact-reg--bl" aria-hidden />
-      <span className="contact-reg contact-reg--br" aria-hidden />
-
       <div className="archive-masthead">
         <div>
           <h1>
             几何模型
             <br />
-            <em>接触印相</em>
+            <em>档案</em>
           </h1>
           <p className="archive-deck">
-            看到条件，想到模型。拖动胶片，直接点任意一格，就能打开它的条件、辅助线与完整证明。
+            看到条件，想到模型。拖动书架，直接点任意一本，就能打开它的条件、辅助线与完整证明。
           </p>
         </div>
         <div className="archive-masthead__meta">
-          <span>GEOREFLEX · CONTACT SHEET</span>
-          <span>46 FRAMES / 6 ROLLS</span>
+          <span>GEOREFLEX · MODEL LIBRARY</span>
+          <span>{n} BOOKS / 6 CATEGORIES</span>
           <span>DRAG · CLICK TO OPEN</span>
           <span>GRADE 8 — 9 / 几何档案</span>
         </div>
       </div>
 
-      <div className="film-rig" ref={rigRef}>
-        <div className="film-glow" aria-hidden />
-        <div className="film-band" aria-hidden>
-          <span className="film-perf film-perf--top" />
-          <span className="film-perf film-perf--bottom" />
-          <span className="film-edge film-edge--left">GEOREFLEX 46</span>
-          <span className="film-edge film-edge--right">SAFETY FILM / 6 ROLLS</span>
-        </div>
-
-        <div className="film-stage">
+      <div className="shelf" ref={shelfRef}>
+        <div className="shelf__shadow" aria-hidden />
+        <div className="shelf__stage">
           {tapes.map((t, v) => (
             <div
               key={`${t.id}-${v}`}
               ref={(el) => {
-                frameRefs.current[v] = el;
+                tapeRefs.current[v] = el;
               }}
-              className={`film-frame ${v === active ? "is-active" : ""}`}
+              className="tape"
               data-cursor="open"
               style={{
                 "--cover-bg": tones[v].bg,
                 "--cover-border": tones[v].border,
-                "--tint": tones[v].tint,
-                "--frame-cut": `${tones[v].cut}px`,
+                "--cover-cut": `${tones[v].cut}px`,
                 "--page-tilt": `${tones[v].tilt}deg`,
               } as React.CSSProperties}
               onPointerEnter={() => {
@@ -402,32 +472,36 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
                 openDetail(t, v);
               }}
             >
-              <div className="film-window">
-                <MiniFigure figure={t.figure} />
+              <div className="tape__spine" ref={(el) => { spineRefs.current[v] = el; }}>
+                <div className="tape__spine-art" aria-hidden>
+                  <MiniFigure figure={t.figure} compact className="h-full w-full" />
+                </div>
+                <div className="tape__spine-title">{t.name.replace(/模型|构造/g, "")}</div>
+                <div className="tape__spine-brand">GEOREFLEX</div>
+                <div className="tape__spine-box">MODEL</div>
               </div>
-              <div className="film-frame-meta">
-                <span className="film-frame-no">{String(v + 1).padStart(2, "0")}</span>
-                <span className="film-frame-cat">{t.category}</span>
+              <div className="tape__cover" ref={(el) => { coverRefs.current[v] = el; }}>
+                <div className="tape__cover-top">
+                  <span>A GEOMETRY MODEL</span>
+                </div>
+                <div className="tape__cover-title">{t.name}</div>
+                <div className="tape__cover-sub">{t.category} · {DIFF_LABEL[t.difficulty]}</div>
+                <div className="tape__cover-figure">
+                  <MiniFigure figure={t.figure} />
+                </div>
+                <div className="tape__cover-badge">MODEL · {String(v + 1).padStart(2, "0")}</div>
               </div>
-              <div className="film-frame-title">{t.name}</div>
-              <span className="film-frame-shade" aria-hidden />
             </div>
           ))}
         </div>
-
         <button
-          ref={loupeRef}
+          ref={ringRef}
           type="button"
-          className="film-loupe"
+          className="play-ring"
           data-cursor="open"
           aria-label={`打开 ${tape.name} 档案`}
           onClick={() => openDetail(tape, active)}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
-            <circle cx="10.5" cy="10.5" r="6" />
-            <path d="m15 15 5 5M8 10.5h5M10.5 8v5" strokeLinecap="round" />
-          </svg>
-        </button>
+        />
       </div>
 
       <div className="archive-caption" aria-live="polite">
@@ -443,17 +517,17 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
         </div>
         <div className="cap-mask">
           <span key={`m-${active}-${dir}`} className="cap-meta cap-enter" style={{ "--dir": dir } as React.CSSProperties}>
-            {metaLine}
+            {yearLine}
           </span>
         </div>
       </div>
 
-      <button type="button" className="archive-arrow archive-arrow--prev" onClick={() => go(-1)} aria-label="上一帧">
+      <button type="button" className="archive-arrow archive-arrow--prev" onClick={() => go(-1)} aria-label="上一个模型">
         <svg viewBox="0 0 24 12" fill="none" stroke="currentColor" strokeWidth="1.2">
           <path d="M6 1 1 6l5 5M1 6h23" />
         </svg>
       </button>
-      <button type="button" className="archive-arrow archive-arrow--next" onClick={() => go(1)} aria-label="下一帧">
+      <button type="button" className="archive-arrow archive-arrow--next" onClick={() => go(1)} aria-label="下一个模型">
         <svg viewBox="0 0 24 12" fill="none" stroke="currentColor" strokeWidth="1.2">
           <path d="M18 1l5 5-5 5M23 6H0" />
         </svg>
@@ -467,9 +541,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
         onClick={(e) => {
           const rect = e.currentTarget.getBoundingClientRect();
           const frac = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-          const index = Math.round(frac * (n - 1));
-          const base = Math.round(tRef.current);
-          tRef.current = base + rel(index, base);
+          jumpTo(Math.round(frac * (n - 1)));
         }}
       >
         <span className="tl-line" />
@@ -495,10 +567,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
         <span ref={dotRef} className="tl-dot" style={{ left: "0%" }} />
       </button>
 
-      <div
-        ref={probeRef}
-        style={{ width: "var(--FW, 190px)", height: "var(--FH, 136px)", position: "absolute", visibility: "hidden" }}
-      />
+      <div ref={probeRef} style={{ height: "var(--H)", width: 0, visibility: "hidden", position: "absolute" }} />
 
       {sheetMounted && detail && (
         <div
@@ -525,7 +594,7 @@ export default function ArchiveShelf({ tapes }: { tapes: ArchiveTape[] }) {
               </div>
               <div className="detail-line--mask" style={{ "--d": "770ms" } as React.CSSProperties}>
                 <div className="detail-meta">
-                  FRAME {String(detailIndex + 1).padStart(2, "0")} / {DIFF_LABEL[detail.difficulty]} / 权重 {detail.importance}
+                  NO.{String(detailIndex + 1).padStart(2, "0")} / {DIFF_LABEL[detail.difficulty]} / 权重 {detail.importance}
                 </div>
               </div>
               <div style={{ "--d": "845ms" } as React.CSSProperties}>

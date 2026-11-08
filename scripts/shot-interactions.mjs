@@ -59,7 +59,7 @@ await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, de
 await goto(BASE + "/", 2200);
 await evaluate("document.querySelector('.arch-cursor')?.setAttribute('style','display:none')");
 const before = await evaluate("document.querySelector('.cap-title')?.textContent");
-const rect = await evaluate("JSON.stringify(document.querySelector('.film-rig').getBoundingClientRect())");
+const rect = await evaluate("JSON.stringify(document.querySelector('.shelf').getBoundingClientRect())");
 const r0 = JSON.parse(rect);
 const cx = r0.left + r0.width / 2;
 const cy = r0.top + r0.height / 2;
@@ -76,7 +76,7 @@ const dragWorked = before !== after;
 await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
 await goto(BASE + "/", 2200);
 await evaluate("document.querySelector('.arch-cursor')?.setAttribute('style','display:none')");
-await evaluate("document.querySelector('.film-loupe')?.click()");
+await evaluate("document.querySelector('.play-ring')?.click()");
 await sleep(1900);
 await shot("final-sheet-390");
 const sheetTitle = await evaluate("document.querySelector('.detail-title')?.textContent");
