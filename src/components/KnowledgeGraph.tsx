@@ -45,9 +45,9 @@ export default function KnowledgeGraph({ data }: { data: GraphData }) {
                   className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
                     category === c.id ? "text-white" : "border-slate-200 bg-white text-slate-600 hover:border-sky-300"
                   }`}
-                  style={category === c.id ? { backgroundColor: c.accent, borderColor: c.accent } : undefined}
+                  style={category === c.id ? { backgroundColor: "var(--color-cobalt)", borderColor: "var(--color-cobalt)" } : undefined}
                 >
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: category === c.id ? "#fff" : c.color }} />
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: category === c.id ? "var(--color-paper)" : "var(--color-cobalt)" }} />
                   {c.short}
                 </button>
               ))}
@@ -63,7 +63,7 @@ export default function KnowledgeGraph({ data }: { data: GraphData }) {
             </label>
           </div>
 
-          <div className="overflow-x-auto bg-[#f8fbff] p-2 scrollbar-thin">
+          <div className="overflow-x-auto bg-[color:var(--color-paper)] p-2 scrollbar-thin">
             <svg
               viewBox="0 0 1200 860"
               className="min-w-[760px]"
@@ -81,11 +81,11 @@ export default function KnowledgeGraph({ data }: { data: GraphData }) {
               {data.clusters.map((c) => (
                 <g key={c.id} opacity={category === "all" || category === c.id ? 1 : 0.25}>
                   <circle cx={c.x} cy={c.y} r={150} fill="url(#clusterGlow)" />
-                  <circle cx={c.x} cy={c.y} r={132} fill="none" stroke={c.color} strokeOpacity="0.18" strokeDasharray="4 6" />
-                  <text x={c.x} y={c.y - 145} textAnchor="middle" fontSize="15" fontWeight="700" fill={c.color} opacity="0.8">
+                  <circle cx={c.x} cy={c.y} r={132} fill="none" stroke="var(--color-cobalt)" strokeOpacity="0.18" strokeDasharray="4 6" />
+                  <text x={c.x} y={c.y - 145} textAnchor="middle" fontSize="15" fontWeight="700" fill="var(--color-cobalt)" opacity="0.8">
                     {c.short}
                   </text>
-                  <text x={c.x} y={c.y - 126} textAnchor="middle" fontSize="10.5" fill="#94a3b8">
+                  <text x={c.x} y={c.y - 126} textAnchor="middle" fontSize="10.5" fill="var(--color-muted)">
                     {c.count} models
                   </text>
                 </g>
@@ -105,7 +105,7 @@ export default function KnowledgeGraph({ data }: { data: GraphData }) {
                     y1={a.y}
                     x2={b.x}
                     y2={b.y}
-                    stroke={active ? "#0ea5e9" : "#94a3b8"}
+                    stroke={active ? "var(--color-cobalt)" : "var(--color-muted)"}
                     strokeOpacity={active ? 0.9 : focus ? 0.12 : 0.22}
                     strokeWidth={active ? 1.8 : 1}
                   />
@@ -129,13 +129,13 @@ export default function KnowledgeGraph({ data }: { data: GraphData }) {
                     onClick={() => setSelected(selected === n.id ? null : n.id)}
                   >
                     <circle cx={n.x} cy={n.y} r={n.r + 9} fill="transparent" />
-                    {isFocus && <circle cx={n.x} cy={n.y} r={n.r + 6} fill="none" stroke={n.color} strokeWidth="1.4" opacity="0.6" />}
+                    {isFocus && <circle cx={n.x} cy={n.y} r={n.r + 6} fill="none" stroke="var(--color-cobalt)" strokeWidth="1.4" opacity="0.6" />}
                     <circle
                       cx={n.x}
                       cy={n.y}
                       r={n.r}
-                      fill={isFocus ? n.color : "#ffffff"}
-                      stroke={n.color}
+                      fill={isFocus ? "var(--color-cobalt)" : "var(--color-sheet)"}
+                      stroke="var(--color-cobalt)"
                       strokeWidth={isFocus ? 2.6 : 1.8}
                     />
                     {labelVisible && (
@@ -146,7 +146,7 @@ export default function KnowledgeGraph({ data }: { data: GraphData }) {
                         fontSize={isFocus ? 12.5 : 10.5}
                         fontWeight={isFocus ? 700 : 500}
                         fill={isFocus ? "#0b1730" : "#475569"}
-                        style={{ paintOrder: "stroke", stroke: "#f8fbff", strokeWidth: 3 }}
+                        style={{ paintOrder: "stroke", stroke: "var(--color-paper)", strokeWidth: 3 }}
                       >
                         {n.short}
                       </text>
@@ -165,7 +165,7 @@ export default function KnowledgeGraph({ data }: { data: GraphData }) {
           {CATEGORIES.map((c) => (
             <div key={c.id} className="card-light p-4">
               <p className="flex items-center gap-2 text-[12px] font-bold text-slate-800">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.color }} />
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--color-cobalt)" }} />
                 {c.short}
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -189,7 +189,7 @@ export default function KnowledgeGraph({ data }: { data: GraphData }) {
           <p className="text-[10px] font-semibold tracking-[0.2em] text-slate-400">NODE INSPECTOR</p>
           {focusModel ? (
             <div className="mt-2">
-              <p className="text-[10px] font-medium" style={{ color: CATEGORY_MAP[focusModel.categories[0]]?.accent }}>
+              <p className="text-[10px] font-medium" style={{ color: "var(--color-cobalt)" }}>
                 {CATEGORY_MAP[focusModel.categories[0]]?.name}
               </p>
               <h2 className="mt-0.5 text-base font-bold text-slate-900">{focusModel.name}</h2>
@@ -215,7 +215,7 @@ export default function KnowledgeGraph({ data }: { data: GraphData }) {
                         onClick={() => setSelected(n.id)}
                         className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] text-slate-600 hover:bg-slate-50 hover:text-sky-700"
                       >
-                        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: n.color }} />
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--color-cobalt)" }} />
                         {n.name}
                       </button>
                     ))}
@@ -238,7 +238,7 @@ export default function KnowledgeGraph({ data }: { data: GraphData }) {
                 {CATEGORIES.map((c) => (
                   <div key={c.id} className="flex items-center justify-between text-[11px]">
                     <span className="inline-flex items-center gap-1.5 text-slate-600">
-                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.color }} />
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--color-cobalt)" }} />
                       {c.short}
                     </span>
                     <span className="font-mono text-slate-400">{MODELS.filter((m) => m.categories.includes(c.id)).length}</span>

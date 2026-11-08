@@ -45,33 +45,24 @@ export default function ModelBrowser({
 
   return (
     <div>
-      <div className="card-light p-4 sm:p-5">
+      <div className="border border-[color:var(--color-rule-soft)] bg-[color:var(--color-sheet)] p-4 sm:p-5">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
-              <svg
-                viewBox="0 0 24 24"
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="11" cy="11" r="7" />
-                <path d="m20 20-3.5-3.5" strokeLinecap="round" />
-              </svg>
+            <div className="relative flex-1 border-b border-[color:var(--color-rule)]">
+              <span className="lbl absolute left-0 top-1/2 -translate-y-1/2 text-[color:var(--color-cobalt)]">SEARCH</span>
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 data-testid="model-search"
-                placeholder="搜索模型名称、关键词，例如：手拉手、中点、45°…"
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
+                placeholder="模型名称、关键词，例如：手拉手、中点、45°…"
+                className="w-full bg-transparent py-2.5 pl-[68px] pr-3 text-sm text-[color:var(--color-ink)] placeholder:text-[color:var(--color-muted)] focus:outline-none"
               />
             </div>
             <div className="flex gap-2">
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value as "all" | Difficulty)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-600 focus:border-sky-400 focus:outline-none"
+                className="border border-[color:var(--color-rule-soft)] bg-transparent px-3 py-2 text-[11px] tracking-[0.06em] text-[color:var(--color-ink)] focus:border-[color:var(--color-cobalt)] focus:outline-none"
                 aria-label="按难度筛选"
               >
                 <option value="all">全部难度</option>
@@ -82,7 +73,7 @@ export default function ModelBrowser({
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as (typeof SORTS)[number]["id"])}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-600 focus:border-sky-400 focus:outline-none"
+                className="border border-[color:var(--color-rule-soft)] bg-transparent px-3 py-2 text-[11px] tracking-[0.06em] text-[color:var(--color-ink)] focus:border-[color:var(--color-cobalt)] focus:outline-none"
                 aria-label="排序方式"
               >
                 {SORTS.map((s) => (
@@ -96,31 +87,33 @@ export default function ModelBrowser({
           <div className="flex flex-wrap gap-1.5">
             <button
               type="button"
+              data-cursor="btn"
               onClick={() => setCategory("all")}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+              className="inline-flex items-center gap-1.5 border px-3 py-1.5 text-[10px] uppercase tracking-[0.12em]"
+              style={
                 category === "all"
-                  ? "border-navy-800 bg-navy-800 text-white"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-sky-300"
-              }`}
+                  ? { background: "var(--color-ink)", borderColor: "var(--color-ink)", color: "var(--color-paper)" }
+                  : { background: "transparent", borderColor: "var(--color-rule-soft)", color: "var(--color-ink)" }
+              }
             >
-              全部 <span className="ml-0.5 opacity-70">{models.length}</span>
+              全部 <span className="opacity-60">{models.length}</span>
             </button>
             {CATEGORIES.map((c) => {
               const count = models.filter((m) => m.categories.includes(c.id)).length;
+              const active = category === c.id;
               return (
                 <button
                   key={c.id}
                   type="button"
+                  data-cursor="btn"
                   onClick={() => setCategory(c.id)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                    category === c.id ? "text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:border-sky-300"
-                  }`}
-                  style={category === c.id ? { backgroundColor: c.accent, borderColor: c.accent } : undefined}
+                  className="inline-flex items-center gap-1.5 border px-3 py-1.5 text-[10px] tracking-[0.1em]"
+                  style={
+                    active
+                      ? { background: "var(--color-cobalt)", borderColor: "var(--color-cobalt)", color: "var(--color-paper)" }
+                      : { background: "transparent", borderColor: "var(--color-rule-soft)", color: "var(--color-ink)" }
+                  }
                 >
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: category === c.id ? "#fff" : c.color }}
-                  />
                   {c.short}
                   <span className="opacity-60">{count}</span>
                 </button>
@@ -130,9 +123,9 @@ export default function ModelBrowser({
         </div>
       </div>
 
-      <div className="mt-5 flex items-center justify-between text-xs text-slate-500">
+      <div className="mt-4 flex items-center justify-between text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-muted)]">
         <span>
-          共 <strong className="font-semibold text-slate-700">{filtered.length}</strong> 个模型
+          共 <strong className="font-semibold text-[color:var(--color-ink)]">{filtered.length}</strong> 个模型
         </span>
         {(category !== "all" || difficulty !== "all" || query) && (
           <button
@@ -142,7 +135,7 @@ export default function ModelBrowser({
               setDifficulty("all");
               setQuery("");
             }}
-            className="text-sky-600 hover:text-sky-700"
+            className="text-[color:var(--color-cobalt)] hover:underline"
           >
             清除筛选
           </button>
@@ -150,9 +143,9 @@ export default function ModelBrowser({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="card-light mt-6 grid place-items-center p-14 text-center">
-          <p className="text-sm font-semibold text-slate-700">没有匹配的模型</p>
-          <p className="mt-1 text-xs text-slate-500">试试更短的关键词，或清除筛选条件。</p>
+        <div className="mt-6 grid place-items-center border border-[color:var(--color-rule-soft)] p-14 text-center">
+          <p className="text-sm text-[color:var(--color-ink)]">没有匹配的模型</p>
+          <p className="mt-1 text-[11px] text-[color:var(--color-muted)]">试试更短的关键词，或清除筛选条件。</p>
         </div>
       ) : (
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

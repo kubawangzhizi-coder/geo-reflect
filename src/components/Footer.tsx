@@ -1,49 +1,45 @@
 import Link from "next/link";
 import { CATEGORIES } from "@/data/categories";
+import { MODEL_STATS } from "@/data/models";
 
 export default function Footer() {
   return (
-    <footer className="mt-20 border-t border-white/10 bg-navy-950 text-slate-400">
-      <div className="container-x grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+    <footer className="border-t border-[color:var(--color-rule)] bg-[color:var(--color-paper)]">
+      <div className="container-x pt-14">
+        <p className="font-[family-name:var(--font-display)] text-[clamp(48px,9vw,132px)] font-extrabold leading-[0.82] tracking-[-0.04em] text-[color:var(--color-ink)]">
+          GEOREFLEX
+        </p>
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--color-rule-soft)] pt-4 text-[10px] tracking-[0.14em] text-[color:var(--color-muted)]">
+          <span>几何模型与辅助线档案 · {MODEL_STATS.total} TAPES</span>
+          <span>看到条件，想到模型</span>
+        </div>
+      </div>
+      <div className="container-x grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
-          <div className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-sky-400/15 ring-1 ring-sky-300/25">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-                <path d="M12 3.5 20.5 19h-17L12 3.5Z" fill="none" stroke="#7dd3fc" strokeWidth="1.4" strokeLinejoin="round" />
-                <circle cx="12" cy="3.5" r="1.4" fill="#e0f2fe" />
-                <circle cx="20.5" cy="19" r="1.4" fill="#38bdf8" />
-                <circle cx="3.5" cy="19" r="1.4" fill="#38bdf8" />
-              </svg>
-            </span>
-            <div>
-              <p className="text-sm font-bold text-white">GeoReflex 几何反射</p>
-              <p className="text-[11px] tracking-[0.2em] text-slate-500">GEOMETRY MODEL LAB</p>
-            </div>
-          </div>
-          <p className="mt-4 max-w-xs text-[13px] leading-6">
-            面向初中生的几何模型与辅助线学习平台。不只展示模型，更讲清辅助线为什么这样加、加了以后能得到什么。
+          <p className="lbl text-[color:var(--color-cobalt)]">ABOUT THE ARCHIVE</p>
+          <p className="mt-4 max-w-sm text-[12.5px] leading-6 text-[color:var(--color-ink-soft)]">
+            面向初中生的几何模型与辅助线学习档案。不只展示模型，更讲清辅助线为什么这样加、加了以后能得到什么。
           </p>
-          <p className="mt-4 text-[11px] leading-5 text-slate-500">
-            内容依据初中数学教材与常见中考几何模型整理，所有证明均经过推理核验。网站的可视化与条件反射结果用于启发思路，不能替代完整证明。
+          <p className="mt-4 max-w-sm text-[11px] leading-5 text-[color:var(--color-muted)]">
+            内容依据初中数学教材与常见中考几何模型整理，所有证明均经过推理核验。可视化与条件反射结果用于启发思路，不能替代完整证明。
           </p>
         </div>
         <div>
-          <p className="text-xs font-semibold tracking-wider text-slate-300">学习工具</p>
-          <ul className="mt-3 space-y-2 text-[13px]">
-            <li><Link className="hover:text-white" href="/models">模型库</Link></li>
-            <li><Link className="hover:text-white" href="/conditions">条件反射系统</Link></li>
-            <li><Link className="hover:text-white" href="/lab">辅助线实验室</Link></li>
-            <li><Link className="hover:text-white" href="/graph">知识图谱</Link></li>
-            <li><Link className="hover:text-white" href="/analyze">几何题智能分析</Link></li>
+          <p className="lbl text-[color:var(--color-cobalt)]">学习工具</p>
+          <ul className="mt-4 space-y-2 text-[12.5px] text-[color:var(--color-ink-soft)]">
+            <li><Link href="/models" className="hover:text-[color:var(--color-cobalt)]">模型库</Link></li>
+            <li><Link href="/conditions" className="hover:text-[color:var(--color-cobalt)]">条件反射系统</Link></li>
+            <li><Link href="/lab" className="hover:text-[color:var(--color-cobalt)]">辅助线实验室</Link></li>
+            <li><Link href="/graph" className="hover:text-[color:var(--color-cobalt)]">知识图谱</Link></li>
+            <li><Link href="/analyze" className="hover:text-[color:var(--color-cobalt)]">几何题智能分析</Link></li>
           </ul>
         </div>
         <div>
-          <p className="text-xs font-semibold tracking-wider text-slate-300">知识分类</p>
-          <ul className="mt-3 space-y-2 text-[13px]">
+          <p className="lbl text-[color:var(--color-cobalt)]">知识分类</p>
+          <ul className="mt-4 space-y-2 text-[12.5px] text-[color:var(--color-ink-soft)]">
             {CATEGORIES.map((c) => (
               <li key={c.id}>
-                <Link className="hover:text-white" href={`/category/${c.id}`}>
-                  <span className="mr-1.5 font-mono text-[11px] text-slate-500">{c.no}</span>
+                <Link href={`/category/${c.id}`} className="hover:text-[color:var(--color-cobalt)]">
                   {c.short}
                 </Link>
               </li>
@@ -51,15 +47,17 @@ export default function Footer() {
           </ul>
         </div>
         <div>
-          <p className="text-xs font-semibold tracking-wider text-slate-300">学习闭环</p>
-          <ol className="mt-3 space-y-2 text-[13px]">
-            <li><span className="mr-1.5 font-mono text-[11px] text-slate-500">01</span>看到题目条件</li>
-            <li><span className="mr-1.5 font-mono text-[11px] text-slate-500">02</span>识别几何结构</li>
-            <li><span className="mr-1.5 font-mono text-[11px] text-slate-500">03</span>联想对应模型</li>
-            <li><span className="mr-1.5 font-mono text-[11px] text-slate-500">04</span>判断辅助线画法</li>
-            <li><span className="mr-1.5 font-mono text-[11px] text-slate-500">05</span>推导新关系并证明</li>
+          <p className="lbl text-[color:var(--color-cobalt)]">学习闭环</p>
+          <ol className="mt-4 space-y-2 text-[12.5px] text-[color:var(--color-ink-soft)]">
+            <li>看到题目条件</li>
+            <li>识别几何结构</li>
+            <li>联想对应模型</li>
+            <li>判断辅助线画法</li>
+            <li>推导新关系并证明</li>
           </ol>
-          <p className="mt-6 text-[11px] text-slate-500">© {new Date().getFullYear()} GeoReflex · 为初二几何而建</p>
+          <p className="mt-6 text-[10px] tracking-[0.12em] text-[color:var(--color-muted)]">
+            © {new Date().getFullYear()} GEOREFLEX · 为初二几何而建
+          </p>
         </div>
       </div>
     </footer>

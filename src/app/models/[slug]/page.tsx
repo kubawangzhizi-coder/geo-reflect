@@ -100,69 +100,71 @@ export default async function ModelDetailPage({ params }: { params: Promise<{ sl
 
   return (
     <div>
-      {/* 01 名称 / 02 分类 */}
-      <header className="relative overflow-hidden bg-navy-950 text-white">
-        <div className="absolute inset-0 grid-bg-dark opacity-50" />
-        <div
-          className="pointer-events-none absolute -right-40 -top-32 h-[30rem] w-[30rem] rounded-full opacity-30 blur-3xl"
-          style={{ background: `radial-gradient(circle, ${primaryCategory?.color ?? "#38bdf8"}55, transparent 70%)` }}
-        />
-        <div className="container-x relative py-10 sm:py-14">
-          <nav className="flex flex-wrap items-center gap-2 text-xs text-slate-400" aria-label="面包屑">
-            <Link href="/" className="hover:text-white">首页</Link>
+      <header className="border-b border-[color:var(--color-rule-soft)] pb-12 pt-28">
+        <div className="container-x">
+          <nav className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-muted)]" aria-label="面包屑">
+            <Link href="/" className="hover:text-[color:var(--color-cobalt)]">首页</Link>
             <span>/</span>
-            <Link href="/models" className="hover:text-white">模型库</Link>
+            <Link href="/models" className="hover:text-[color:var(--color-cobalt)]">模型库</Link>
             <span>/</span>
-            <Link href={`/category/${primaryCategory?.id}`} className="hover:text-white">
+            <Link href={`/category/${primaryCategory?.id}`} className="hover:text-[color:var(--color-cobalt)]">
               {primaryCategory?.short}
             </Link>
             <span>/</span>
-            <span className="text-slate-200">{model.name}</span>
+            <span className="text-[color:var(--color-ink)]">{model.name}</span>
           </nav>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2">
-            {model.categories.map((c) => (
-              <CategoryTag key={c} id={c} />
-            ))}
-            <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-0.5 text-[11px] text-slate-300">
-              {model.grade}
-            </span>
+          <div className="mt-7 grid gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                {model.categories.map((c) => (
+                  <CategoryTag key={c} id={c} />
+                ))}
+                <span className="border border-[color:var(--color-rule-soft)] px-2 py-0.5 text-[9.5px] uppercase tracking-[0.12em] text-[color:var(--color-muted)]">
+                  {model.grade}
+                </span>
+              </div>
+              <h1 className="mt-4 max-w-[14ch] font-[family-name:var(--font-display)] text-[clamp(38px,5.4vw,78px)] font-extrabold leading-[0.98] tracking-[-0.035em] text-[color:var(--color-ink)]">
+                {model.name}
+              </h1>
+              {model.alias && model.alias.length > 0 && (
+                <p className="mt-3 text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-muted)]">
+                  又称：{model.alias.join(" · ")}
+                </p>
+              )}
+            </div>
+            <div className="lg:pt-10">
+              <MathText className="block max-w-[46ch] text-[13.5px] leading-7 text-[color:var(--color-ink-soft)]" text={model.summary} />
+              <div className="mt-5 flex flex-wrap items-center gap-5 border-t border-[color:var(--color-rule-soft)] pt-4 text-[10px] uppercase tracking-[0.1em] text-[color:var(--color-muted)]">
+                <span>难度 <DifficultyBadge value={model.difficulty} /></span>
+                <span className="inline-flex items-center gap-2">权重 <ImportanceBar value={model.importance} /></span>
+                <span>{model.proof.steps.length} 步证明 · {model.auxSteps.length} 步辅助线</span>
+              </div>
+            </div>
           </div>
 
-          <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">{model.name}</h1>
-          {model.alias && model.alias.length > 0 && (
-            <p className="mt-1.5 text-xs text-slate-400">又称：{model.alias.join("、")}</p>
-          )}
-          <MathText className="mt-3 block max-w-3xl text-sm leading-7 text-slate-300" text={model.summary} />
-
-          <div className="mt-5 flex flex-wrap items-center gap-5 text-xs text-slate-300">
-            <span>难度 <DifficultyBadge value={model.difficulty} /></span>
-            <span className="inline-flex items-center gap-2">考试权重 <ImportanceBar value={model.importance} /></span>
-            <span>{model.proof.steps.length} 步证明 · {model.auxSteps.length} 步辅助线</span>
+          <div className="mt-9 border-y border-[color:var(--color-rule-soft)] py-4">
+            <span className="lbl text-[color:var(--color-cobalt)]">识别口诀 · MNEMONIC</span>
+            <MathText className="mt-2 block text-[15px] font-medium leading-7 text-[color:var(--color-ink)]" text={model.mnemonic} />
           </div>
 
-          <div className="mt-6 rounded-xl border border-sky-400/20 bg-sky-400/[0.07] p-4">
-            <p className="text-[10px] font-semibold tracking-[0.2em] text-sky-300/80">识别口诀 · MNEMONIC</p>
-            <MathText className="mt-1 block text-sm font-medium text-sky-100" text={model.mnemonic} />
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href={`/lab?model=${model.id}`} className="btn-primary">
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Link href={`/lab?model=${model.id}`} className="btn-primary" data-cursor="btn">
               在实验室画辅助线
             </Link>
             {conditions.length > 0 && (
-              <Link href={`/conditions?c=${conditions[0].id}`} className="btn-ghost-dark">
+              <Link href={`/conditions?c=${conditions[0].id}`} className="btn-outline" data-cursor="btn">
                 从条件反查
               </Link>
             )}
-            <Link href="/models" className="btn-ghost-dark">
+            <Link href="/models" className="btn-outline" data-cursor="btn">
               返回模型库
             </Link>
           </div>
         </div>
       </header>
 
-      <div className="container-x grid gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="container-x grid gap-10 py-12 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* 主内容 */}
         <div className="min-w-0 space-y-8">
           {/* 03 标准几何图形 */}
@@ -228,7 +230,9 @@ export default async function ModelDetailPage({ params }: { params: Promise<{ sl
                     <span className="rounded-lg bg-amber-500 px-2 py-0.5 font-mono text-[10px] font-bold text-white">
                       STEP {s.step}
                     </span>
-                    <h3 className="text-sm font-bold text-slate-900">{s.title}</h3>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      <MathText text={s.title} />
+                    </h3>
                   </div>
                   <MathText className="mt-2 block text-[13px] leading-6 text-slate-600" text={s.detail} />
                   <div className="mt-2.5 rounded-lg border border-emerald-100 bg-emerald-50/60 px-3 py-2">
@@ -325,7 +329,7 @@ export default async function ModelDetailPage({ params }: { params: Promise<{ sl
                 <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
                   <p className="flex items-center gap-2 text-[13px] font-bold text-slate-800">
                     <span className="font-mono text-[10px] text-slate-400">变式 {i + 1}</span>
-                    {v.title}
+                    <span><MathText text={v.title} /></span>
                   </p>
                   <MathText className="mt-1.5 block text-[12.5px] leading-6 text-slate-500" text={v.desc} />
                 </div>

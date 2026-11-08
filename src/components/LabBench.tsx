@@ -195,7 +195,9 @@ export default function LabBench({ models, initialId }: { models: LabModel[]; in
                     >
                       {s.step}
                     </span>
-                    <span className="text-[12.5px] font-semibold text-slate-800">{s.title}</span>
+                    <span className="text-[12.5px] font-semibold text-slate-800">
+                      <MathText text={s.title} />
+                    </span>
                     {!done && (
                       <button
                         type="button"

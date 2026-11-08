@@ -8,43 +8,35 @@ import type { SearchItem } from "@/lib/search";
 import { searchIndex } from "@/lib/search";
 
 const NAV = [
-  { href: "/models", label: "模型库" },
-  { href: "/conditions", label: "条件反射" },
-  { href: "/lab", label: "辅助线实验室" },
-  { href: "/graph", label: "知识图谱" },
-  { href: "/analyze", label: "智能分析" },
+  { href: "/models", label: "模型库", en: "INDEX" },
+  { href: "/conditions", label: "条件反射", en: "REFLEX" },
+  { href: "/lab", label: "辅助线实验室", en: "LAB" },
+  { href: "/graph", label: "知识图谱", en: "GRAPH" },
+  { href: "/analyze", label: "智能分析", en: "ANALYZE" },
 ];
 
-function Logo() {
+function Wordmark() {
   return (
-    <Link href="/" className="group flex items-center gap-2.5" aria-label="GeoReflex 首页">
-      <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-sky-400/25 to-sky-500/5 ring-1 ring-sky-300/30">
+    <Link href="/" className="group flex items-center gap-3" aria-label="GeoReflex 首页">
+      <span className="grid h-8 w-8 place-items-center border border-[color:var(--color-rule)]">
         <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-          <path d="M12 3.5 20.5 19h-17L12 3.5Z" fill="none" stroke="#7dd3fc" strokeWidth="1.4" strokeLinejoin="round" />
-          <circle cx="12" cy="3.5" r="1.5" fill="#e0f2fe" />
-          <circle cx="20.5" cy="19" r="1.5" fill="#38bdf8" />
-          <circle cx="3.5" cy="19" r="1.5" fill="#38bdf8" />
-          <path d="M12 3.5v15.5" stroke="#38bdf8" strokeWidth="1" strokeDasharray="2 2" opacity="0.7" />
+          <path d="M12 3.5 20.5 19h-17L12 3.5Z" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+          <circle cx="12" cy="3.5" r="1.2" fill="currentColor" />
+          <circle cx="20.5" cy="19" r="1.2" fill="currentColor" />
+          <circle cx="3.5" cy="19" r="1.2" fill="currentColor" />
         </svg>
-        <span className="absolute inset-0 rounded-xl opacity-0 ring-1 ring-sky-300/40 transition group-hover:opacity-100" />
       </span>
       <span className="leading-tight">
-        <span className="block text-[15px] font-bold tracking-wide text-white">
-          GeoReflex<span className="ml-1 text-sky-300/80">几何反射</span>
+        <span className="block text-[13px] font-bold tracking-[0.08em] text-[color:var(--color-ink)]">
+          GEOREFLEX<span className="ml-2 font-normal tracking-[0.14em] text-[color:var(--color-muted)]">几何反射</span>
         </span>
-        <span className="block text-[10px] tracking-[0.22em] text-slate-400">GEOMETRY MODEL LAB</span>
+        <span className="block text-[9px] tracking-[0.24em] text-[color:var(--color-muted)]">MODEL ARCHIVE</span>
       </span>
     </Link>
   );
 }
 
-function Palette({
-  items,
-  onClose,
-}: {
-  items: SearchItem[];
-  onClose: () => void;
-}) {
+function Palette({ items, onClose }: { items: SearchItem[]; onClose: () => void }) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
@@ -54,10 +46,7 @@ function Palette({
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
-
-  useEffect(() => {
-    setActive(0);
-  }, [q]);
+  useEffect(() => setActive(0), [q]);
 
   const go = useCallback(
     (id: string) => {
@@ -68,19 +57,11 @@ function Palette({
   );
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[10vh]">
-      <button
-        type="button"
-        aria-label="关闭搜索"
-        onClick={onClose}
-        className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
-      />
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-navy-900 shadow-2xl">
-        <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3.5">
-          <svg viewBox="0 0 24 24" className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" strokeLinecap="round" />
-          </svg>
+    <div className="fixed inset-0 z-[90] flex items-start justify-center px-4 pt-[12vh]">
+      <button type="button" aria-label="关闭搜索" onClick={onClose} className="absolute inset-0 bg-[color:rgba(20,20,20,0.55)]" />
+      <div className="relative w-full max-w-xl border border-[color:var(--color-rule)] bg-[color:var(--color-sheet)]">
+        <div className="flex items-center gap-3 border-b border-[color:var(--color-rule-soft)] px-4 py-3.5">
+          <span className="lbl text-[color:var(--color-cobalt)]">SEARCH</span>
           <input
             ref={inputRef}
             value={q}
@@ -92,23 +73,18 @@ function Palette({
               } else if (e.key === "ArrowUp") {
                 e.preventDefault();
                 setActive((a) => Math.max(a - 1, 0));
-              } else if (e.key === "Enter" && results[active]) {
-                go(results[active].id);
-              } else if (e.key === "Escape") {
-                onClose();
-              }
+              } else if (e.key === "Enter" && results[active]) go(results[active].id);
+              else if (e.key === "Escape") onClose();
             }}
-            placeholder="搜索模型、条件、关键词，例如：中点、45°、手拉手…"
-            className="w-full bg-transparent text-sm text-white placeholder:text-slate-500 focus:outline-none"
+            placeholder="输入模型名、条件或关键词…"
+            className="w-full bg-transparent text-sm text-[color:var(--color-ink)] placeholder:text-[color:var(--color-muted)] focus:outline-none"
             aria-label="搜索模型"
           />
-          <span className="hidden shrink-0 rounded border border-white/15 px-1.5 py-0.5 text-[10px] text-slate-400 sm:inline">
-            ESC
-          </span>
+          <span className="shrink-0 text-[9px] tracking-[0.14em] text-[color:var(--color-muted)]">ESC</span>
         </div>
-        <div className="max-h-[60vh] overflow-y-auto p-2 scrollbar-thin">
+        <div className="max-h-[58vh] overflow-y-auto scrollbar-thin">
           {results.length === 0 && (
-            <p className="px-3 py-8 text-center text-sm text-slate-400">没有找到匹配的模型，换个关键词试试。</p>
+            <p className="px-4 py-10 text-center text-xs text-[color:var(--color-muted)]">没有匹配的模型。</p>
           )}
           {results.map((r, i) => (
             <button
@@ -116,31 +92,28 @@ function Palette({
               type="button"
               onMouseEnter={() => setActive(i)}
               onClick={() => go(r.id)}
-              className={`flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition ${
-                i === active ? "bg-sky-500/15 ring-1 ring-sky-400/25" : "hover:bg-white/5"
-              }`}
+              className="grid w-full grid-cols-[32px_1fr] gap-3 border-b border-[color:var(--color-rule-faint)] px-4 py-3 text-left last:border-0"
+              style={i === active ? { background: "rgba(31,63,176,0.08)" } : undefined}
             >
-              <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/5 text-xs font-bold text-sky-300">
+              <span className="text-[10px] font-semibold tracking-[0.14em] text-[color:var(--color-cobalt)]">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <span className="min-w-0">
                 <span className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-semibold text-white">{r.name}</span>
-                  {r.categories.slice(0, 2).map((c) => (
-                    <span key={c} className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-slate-300">
-                      {CATEGORY_MAP[c]?.short ?? c}
-                    </span>
-                  ))}
+                  <span className="text-sm font-semibold text-[color:var(--color-ink)]">{r.name}</span>
+                  <span className="text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-muted)]">
+                    {CATEGORY_MAP[r.categories[0]]?.short}
+                  </span>
                 </span>
-                <span className="mt-0.5 line-clamp-1 block text-xs text-slate-400">{r.summary}</span>
+                <span className="mt-0.5 line-clamp-1 block text-[11px] text-[color:var(--color-muted)]">{r.summary}</span>
               </span>
             </button>
           ))}
         </div>
-        <div className="flex items-center justify-between border-t border-white/10 px-4 py-2.5 text-[11px] text-slate-500">
-          <span>↑↓ 选择 · Enter 打开 · Esc 关闭</span>
-          <Link href="/models" onClick={onClose} className="text-sky-400 hover:text-sky-300">
-            浏览全部模型 →
+        <div className="flex items-center justify-between border-t border-[color:var(--color-rule-soft)] px-4 py-2.5">
+          <span className="text-[9px] tracking-[0.14em] text-[color:var(--color-muted)]">↑↓ SELECT · ENTER OPEN</span>
+          <Link href="/models" onClick={onClose} className="lbl text-[color:var(--color-cobalt)]">
+            全部模型 →
           </Link>
         </div>
       </div>
@@ -164,27 +137,31 @@ export default function Navbar({ searchIndex: items }: { searchIndex: SearchItem
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+  useEffect(() => setOpen(false), [pathname]);
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-navy-950/85 backdrop-blur-xl">
-        <div className="container-x flex h-16 items-center justify-between gap-4">
-          <Logo />
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="主导航">
-            {NAV.map((n) => {
-              const active = pathname === n.href || (n.href !== "/" && pathname.startsWith(n.href));
+      <header className="sticky top-0 z-50 border-b border-[color:var(--color-rule)] bg-[color:var(--color-paper)]">
+        <div className="container-x flex h-[76px] items-center justify-between gap-6">
+          <Wordmark />
+          <nav className="hidden items-center gap-8 lg:flex" aria-label="主导航">
+            {NAV.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
                 <Link
-                  key={n.href}
-                  href={n.href}
-                  className={`rounded-lg px-3 py-2 text-[13.5px] font-medium transition ${
-                    active ? "bg-white/10 text-white" : "text-slate-300 hover:bg-white/5 hover:text-white"
-                  }`}
+                  key={item.href}
+                  href={item.href}
+                  data-cursor="btn"
+                  className="group flex items-baseline gap-1.5"
                 >
-                  {n.label}
+                  <span
+                    className={`text-[12px] tracking-[0.06em] ${
+                      active ? "text-[color:var(--color-cobalt)]" : "text-[color:var(--color-ink)] group-hover:text-[color:var(--color-cobalt)]"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                  <span className="text-[8px] tracking-[0.18em] text-[color:var(--color-muted)]">{item.en}</span>
                 </Link>
               );
             })}
@@ -193,47 +170,51 @@ export default function Navbar({ searchIndex: items }: { searchIndex: SearchItem
             <button
               type="button"
               onClick={() => setPalette(true)}
-              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300 transition hover:bg-white/10 hover:text-white"
+              data-cursor="btn"
+              className="hidden items-center gap-2 border border-[color:var(--color-rule)] px-3 py-2 text-[10px] tracking-[0.14em] text-[color:var(--color-ink)] transition hover:bg-[color:var(--color-ink)] hover:text-[color:var(--color-paper)] sm:flex"
               aria-label="打开搜索"
             >
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="7" />
-                <path d="m20 20-3.5-3.5" strokeLinecap="round" />
-              </svg>
-              <span className="hidden sm:inline">搜索模型</span>
-              <kbd className="hidden rounded border border-white/15 px-1.5 py-0.5 font-mono text-[10px] text-slate-400 sm:inline">
-                Ctrl K
-              </kbd>
+              SEARCH
+              <span className="text-[9px] text-current/60">⌘K</span>
             </button>
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
-              className="grid h-9 w-9 place-items-center rounded-lg border border-white/10 text-slate-300 lg:hidden"
+              className="grid h-9 w-9 place-items-center border border-[color:var(--color-rule)] text-[color:var(--color-ink)] lg:hidden"
               aria-label="打开菜单"
               aria-expanded={open}
             >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                {open ? (
-                  <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
-                ) : (
-                  <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
-                )}
-              </svg>
+              <span className="grid gap-[5px]">
+                <span className="block h-[1.5px] w-[26px] bg-current" />
+                <span className="block h-[1.5px] w-[26px] bg-current" />
+              </span>
             </button>
           </div>
         </div>
         {open && (
-          <div className="border-t border-white/10 bg-navy-950 lg:hidden">
-            <nav className="container-x grid gap-1 py-3" aria-label="移动端导航">
-              {NAV.map((n) => (
+          <div className="border-t border-[color:var(--color-rule-soft)] bg-[color:var(--color-paper)] lg:hidden">
+            <nav className="container-x grid py-2" aria-label="移动端导航">
+              {NAV.map((item) => (
                 <Link
-                  key={n.href}
-                  href={n.href}
-                  className="rounded-lg px-3 py-2.5 text-sm text-slate-200 hover:bg-white/5"
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center justify-between border-b border-[color:var(--color-rule-faint)] py-3 text-sm text-[color:var(--color-ink)] last:border-0"
                 >
-                  {n.label}
+                  <span>{item.label}</span>
+                  <span className="text-[9px] tracking-[0.18em] text-[color:var(--color-muted)]">{item.en}</span>
                 </Link>
               ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  setPalette(true);
+                }}
+                className="mt-2 flex items-center justify-between py-3 text-left text-sm"
+              >
+                <span>搜索模型</span>
+                <span className="text-[9px] tracking-[0.18em] text-[color:var(--color-muted)]">SEARCH</span>
+              </button>
             </nav>
           </div>
         )}

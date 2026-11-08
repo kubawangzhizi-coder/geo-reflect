@@ -53,7 +53,7 @@ export default function FigureStage({
             }`}
             title={s.title}
           >
-            辅助线 {s.step}
+    辅助线 {s.step}
           </button>
         ))}
         {max > 0 && (
@@ -71,7 +71,9 @@ export default function FigureStage({
           {active.map((s) => (
             <div key={s.step} className="text-xs leading-5">
               <span className="mr-1.5 font-mono text-[10px] font-bold text-amber-600">STEP {s.step}</span>
-              <span className="font-semibold text-slate-800">{s.title}</span>
+                    <span className="text-[12.5px] font-semibold text-slate-800">
+                      <MathText text={s.title} />
+                    </span>
               <MathText className="text-slate-600" text={`：${s.detail}`} />
               <MathText className="block text-slate-500" text={`→ ${s.gain}`} />
             </div>
